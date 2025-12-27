@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Settings</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            margin: 10px 0;
+            box-sizing: border-box;
+        }
+
+        button {
+            background: #E4383B;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Extension Settings</h1>
+
+    <h3>Gemini API Key</h3>
+    <p>Required for AI analysis features.</p>
+    <input type="password" id="apiKey" placeholder="Paste your Gemini API Key here">
+
+    <button id="btnSave">Save Settings</button>
+    <span id="msg" style="color:green; display:none; margin-left:10px;">Saved!</span>
+
+    <script src="settings.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Welcome - Setup</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            padding: 40px;
+            max-width: 600px;
+            margin: 0 auto;
+            color: #333;
+        }
+
+        h1 {
+            color: #E4383B;
+        }
+
+        .card {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            margin-top: 20px;
+        }
+
+        button {
+            background-color: #E4383B;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #C22F32;
+        }
+
+        .success {
+            color: green;
+            display: none;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Welcome to Property Manager</h1>
+    <p>This extension helps you curate a local database of property listings.</p>
+
+    <div class="card">
+        <h3>Step 1: Choose Storage Location</h3>
+        <p>Please select a local folder where all your property data and HTML snapshots will be stored.</p>
+        <button id="btnSelect">Select Folder</button>
+        <div id="msgSuccess" class="success">Folder Linked Successfully! You can close this tab.</div>
+    </div>
+
+    <script type="module" src="welcome.js"></script>
+</body>
+
+</html>
