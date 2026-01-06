@@ -107,14 +107,14 @@ function render() {
         // Define Columns Config
         const cols = [
             { id: 'Actions', label: 'Actions', always: true, cls: 'col-actions' },
-            { id: 'Images', label: 'Images', tag: 'Images', cls: 'col-images' }, // Changed: made togglable
+            { id: 'Images', label: 'Images', tag: 'Images', cls: 'col-images' },
             { id: 'Title', label: 'Title', tag: 'Title', cls: 'col-title' },
             { id: 'Type', label: 'Type', tag: 'Type', cls: '' },
+            { id: 'Furnishing', label: 'Furnishing', tag: 'Furnishing', cls: '' }, // New Col
             { id: 'Price', label: 'Price', tag: 'Price', cls: 'col-price' },
             { id: 'Size', label: 'Size', tag: 'Size', cls: 'col-size' },
-            { id: 'BedBath', label: 'Bed/Bath', tag: 'Bedrooms', cls: '' },
             { id: 'Address', label: 'Address', tag: 'Address', cls: '' },
-            { id: 'Commute', label: 'CommuteTime (to Capital Tower)', tag: 'Commute Time', cls: '' }, // Consolidated tag
+            { id: 'Commute', label: 'CommuteTime (to Capital Tower)', tag: 'Commute Time', cls: '' },
             { id: 'Comments', label: 'Comments', always: true, cls: '' }
         ];
 
@@ -123,7 +123,6 @@ function render() {
             if (c.always) return true;
 
             // Special handling for composite columns
-            if (c.id === 'BedBath') return !(hiddenTags.has('Bedrooms') && hiddenTags.has('Bathrooms')); // Only hide if BOTH hidden
             if (c.id === 'Size') return !hiddenTags.has('Size'); // Simplified to just Size
             if (c.id === 'Images') return !hiddenTags.has('Images'); // Handle legacy tag
 
@@ -248,14 +247,7 @@ function render() {
             // 6. Size
             const sizeCell = `<td>${tags.Size || tags.Area || ""}</td>`;
 
-            // 7. Bed/Bath
-            const bed = tags.Bedrooms || "?";
-            const bath = tags.Bathrooms || "?";
-            let bbText = `${bed} Bed / ${bath} Bath`;
-            if (hiddenTags.has('Bedrooms') && !hiddenTags.has('Bathrooms')) bbText = `${bath} Bath`;
-            if (!hiddenTags.has('Bedrooms') && hiddenTags.has('Bathrooms')) bbText = `${bed} Bed`;
-            if (hiddenTags.has('Bedrooms') && hiddenTags.has('Bathrooms')) bbText = "-"; // Should be hidden by column filter, but fallback
-            const bedBathCell = `<td>${bbText}</td>`;
+
 
             // 8. Address
             const addressCell = `<td style="font-size:0.9em; color:#555;">${tags.Address || p.address || ""}</td>`;
@@ -302,9 +294,9 @@ function render() {
                 if (c.id === 'Images') rowHtml += imageCell;
                 if (c.id === 'Title') rowHtml += titleCell;
                 if (c.id === 'Type') rowHtml += typeCell;
+                if (c.id === 'Furnishing') rowHtml += `<td>${tags.Furnishing || ""}</td>`;
                 if (c.id === 'Price') rowHtml += priceCell;
                 if (c.id === 'Size') rowHtml += sizeCell;
-                if (c.id === 'BedBath') rowHtml += bedBathCell;
                 if (c.id === 'Address') rowHtml += addressCell;
                 if (c.id === 'Commute') rowHtml += commuteCell;
                 if (c.id === 'Comments') rowHtml += commentsCell;
@@ -344,39 +336,79 @@ function exportCSV() {
         return;
     }
 
-    const headers = ["ID", "Title", "Type", "Price", "Size", "Bed", "Bath", "Address", "Commute (Capital Tower)", "Commute Link", "Link", "Comments"];
-    const csvRows = [headers.join(",")];
+    // 1. Determine Visible Columns
+    // Re-use logic from render()
+    const cols = [
+        { id: 'Actions', label: 'Actions', always: true },
+        { id: 'Images', label: 'Images', tag: 'Images', getValue: p => (p.tags?.Images || []).length + " images" },
+        { id: 'Title', label: 'Title', tag: 'Title', getValue: p => p.tags?.Title || p.title },
+        { id: 'Type', label: 'Type', tag: 'Type', getValue: p => p.tags?.Type || "" },
+        { id: 'Furnishing', label: 'Furnishing', tag: 'Furnishing', getValue: p => p.tags?.Furnishing || "" },
+        { id: 'Price', label: 'Price', tag: 'Price', getValue: p => p.tags?.Price || p.price },
+        { id: 'Size', label: 'Size', tag: 'Size', getValue: p => p.tags?.Size || p.tags?.Area },
+        { id: 'Address', label: 'Address', tag: 'Address', getValue: p => p.tags?.Address || p.address },
+        {
+            id: 'Commute', label: 'CommuteTime (to Capital Tower)', tag: 'Commute Time', getValue: p => {
+                const tags = p.tags || {};
+                const cWalk = tags["Commute Walk"] ? `🚶 ${tags["Commute Walk"]}m` : "";
+                const cTransit = tags["Commute Transit"] ? `🚌 ${tags["Commute Transit"]}m` : "";
+                let val = [cWalk, cTransit].filter(Boolean).join(" | ");
+                if (!val) val = p.manualCommute || "";
+                return val;
+            }
+        },
+        { id: 'CommuteLink', label: 'Commute Link', tag: 'Commute Time', getValue: p => p.tags?.["Commute Link"] || p.mapLink },
+        { id: 'Link', label: 'Link', always: true, getValue: p => p.url || p.tags?.Link },
+        { id: 'Comments', label: 'Comments', always: true, getValue: p => p.comment }
+    ];
 
-    allProps.forEach(p => {
-        if (p.status === 'deleted') return; // Skip deleted
+    // Filter cols based on hiddenTags
+    const visibleCols = cols.filter(c => {
+        // Exclude Actions specifically from export
+        if (c.id === 'Actions') return false;
 
-        const tags = p.tags || {};
-        const safe = (text) => `"${(text || "").toString().replace(/"/g, '""')}"`;
+        if (c.always) return true;
+        // Special handling
+        if (c.id === 'Size') return !hiddenTags.has('Size');
+        if (c.id === 'Images') return !hiddenTags.has('Images');
+        return !hiddenTags.has(c.tag);
+    });
 
-        const cWalk = tags["Commute Walk"] ? `🚶 ${tags["Commute Walk"]}m` : "";
-        const cTransit = tags["Commute Transit"] ? `🚌 ${tags["Commute Transit"]}m` : "";
-        let commuteVal = [cWalk, cTransit].filter(Boolean).join(" | ");
-        if (!commuteVal) commuteVal = p.manualCommute || "N/A";
+    // 2. Filter Rows
+    const showDeleted = document.getElementById('chkShowDeleted').checked;
+    const onlyPriority = document.getElementById('chkOnlyPriority').checked;
 
-        const row = [
-            safe(p.id),
-            safe(tags.Title || p.title),
-            safe(tags.Type || ""),
-            safe(tags.Price || p.price),
-            safe(tags.Size || tags.Area),
-            safe(tags.Bedrooms),
-            safe(tags.Bathrooms),
-            safe(tags.Address || p.address),
-            safe(commuteVal),
-            safe(tags["Commute Link"] || p.mapLink),
-            safe(p.url || tags.Link),
-            safe(p.comment)
-        ];
-        csvRows.push(row.join(","));
+    const filteredProps = allProps.filter(p => {
+        if (!showDeleted && p.status === 'deleted') return false;
+        if (onlyPriority && !p.priority) return false;
+        return true;
+    });
+
+    if (filteredProps.length === 0) {
+        alert("No properties match filters.");
+        return;
+    }
+
+    // 3. Build CSV
+    const csvRows = [];
+
+    // Header
+    const headers = visibleCols.map(c => c.label);
+    csvRows.push(headers.join(","));
+
+    // Rows
+    const safe = (text) => `"${(text || "").toString().replace(/"/g, '""')}"`;
+
+    filteredProps.forEach(p => {
+        const rowData = visibleCols.map(c => {
+            const val = c.getValue ? c.getValue(p) : "";
+            return safe(val);
+        });
+        csvRows.push(rowData.join(","));
     });
 
     const csvString = csvRows.join("\n");
-    const blob = new Blob([csvString], { type: 'text/csv' });
+    const blob = new Blob(["\uFEFF" + csvString], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
 
     // Create temp link to download
@@ -446,7 +478,7 @@ async function runAnalysis(showConfirm = true) {
         // Parallel batching could be faster, but sequential is safer for now
         for (let i = 0; i < allProps.length; i++) {
             const p = allProps[i];
-            if (p.status === 'deleted') continue;
+            // if (p.status === 'deleted') continue; // Analyze all, even deleted
 
             const filename = `property_${p.id}.html`;
             try {

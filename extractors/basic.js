@@ -56,27 +56,30 @@ export async function extractBasicTags(doc) {
     }
 
     /** ---------- type ---------- */
-    let type = "studio/apartment";
+    let type = "studio/一居室";
 
     const hasRoomAmenity = amenities.some(a => /\broom\b/.test(a));
-    const hasMasterRoomDesc = hasRoomAmenity && descriptionText.includes("master room");
+    const hasMasterRoomAmenity = amenities.some(a => a.includes("master room"));
+    // const hasMasterRoomDesc = hasRoomAmenity && descriptionText.includes("master room");
+    // Updated: Check for master*room in description (regex)
+    const hasMasterRoomDesc = /master.*?room/i.test(descriptionText);
 
-    if (hasMasterRoomDesc) {
+    if (hasMasterRoomDesc || hasMasterRoomAmenity) {
         type = "master room";
     } else if (hasRoomAmenity) {
         type = "room";
     }
 
-    /** ---------- bed / bath ---------- */
-    let bed = null;
-    let bath = null;
-
-    if (type === "studio/apartment") {
-        for (const a of amenities) {
-            let m;
-            if ((m = a.match(/(\d+)\s*bed/))) bed = Number(m[1]);
-            if ((m = a.match(/(\d+)\s*bath/))) bath = Number(m[1]);
-        }
+    /** ---------- furnishing ---------- */
+    let furnishing = "";
+    const detailsTable = doc.querySelector('.meta-table-root[da-id="property-details"]');
+    if (detailsTable) {
+        const text = detailsTable.innerText.toLowerCase();
+        if (text.includes("fully furnished")) furnishing = "Fully Furnished";
+        else if (text.includes("partially furnished")) furnishing = "Partially Furnished";
+        else if (text.includes("unfurnished")) furnishing = "Unfurnished";
+        // Attempt to capture other renovation text if format allows?
+        // Usually these are labeled "Furnishing" in the table row. 
     }
 
     // 4. Clean up
@@ -114,8 +117,7 @@ export async function extractBasicTags(doc) {
         "Address": address || "",
         "Size": size || "0",
         "Type": type || "",
-        "Bedrooms": bed !== null ? bed : "", // 0 is valid for Studio
-        "Bathrooms": bath !== null ? bath : "",
+        "Furnishing": furnishing || "",
         "Images": galleryImages, // Return array of strings
         "Link": metaUrl,
         "Commute Walk": commuteWalk,

@@ -32,7 +32,7 @@
 2.  **加载插件**：
     *   在 Chrome 地址栏输入 `chrome://extensions` 并回车。
     *   开启右上角的 **"开发者模式" (Developer mode)** 开关。
-    *   点击左上角的 **"加载已解压的扩展程序" (Load unpacked)** 按钮。
+    *   点击左上角的 **"加载未打包的扩展程序" (Load unpacked)** 按钮。
     *   选择下载的 `property_extension` 文件夹。
     ![Load Extension](readme_imgs/1_load_extension.jpeg)
 
@@ -59,11 +59,11 @@
 6.  **日常管理**：
     *   在表格中查看对比房源。
     *   **隐藏/显示列**：觉得列太多太乱？点击顶部的蓝色标签把不需要的列（如 Size 或 Images）点灰即可隐藏。
-    *   **查看&输入通勤时间**：在 CommuteTime 列，包含谷歌地图从该房源到capital tower的链接，支持手动输入通勤时间，等 google map api接入成功后增加获取通勤时间功能
+    *   **查看&输入通勤时间**：在 CommuteTime 列，包含谷歌地图从该房源到capital tower的链接，支持手动输入通勤时间，等 google map api接入成功后增加自动获取通勤时间功能
     *   **标记**：
         *   **Star**：标记为星标，会高亮该房源
         *   **Delete**：逻辑删除，会将该房源从表格中移除，但数据仍然保存在本地文件夹中，点击Show Deleted可恢复
-    *   **导出**：需要进一步分析或将房源信息分享给其他人/中介时，点击右上角的 "Export CSV" 按钮。
+    *   **导出**：需要进一步分析或将房源信息分享给朋友/中介时，点击右上角的 "Export CSV" 按钮。
     ![Dashboard](readme_imgs/7_dashboard.jpeg)
 
 ## 注意事项
