@@ -6,6 +6,8 @@
 
 这是一个用于增强 PropertyGuru 筛房体验的 Chrome 浏览器插件。它可以自动提取房源的关键信息，以表格形式清晰展示，并提供轻便的筛选、管理和导出功能。
 
+PS: 这个仓库是Vibe coding的成果！😋
+
 
 ## 主要功能
 ![Dashboard](readme_imgs/7_dashboard.jpeg)
